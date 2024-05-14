@@ -6,8 +6,9 @@
 # - JVM 17+ installed
 # - latest release of 'geralang/gerac' has a file 'gerac.jar' compiled with Java 17
 
-c_red=$(echo -e "\033[0;31m")
-c_green=$(echo -e "\033[0;32m")
+c_red=$(echo -e "\033[31m")
+c_green=$(echo -e "\033[32m")
+c_blue=$(echo -e "\033[34m")
 c_reset=$(echo -e "\033[0m")
 c_bold=$(echo -e "\033[1m")
 
@@ -164,42 +165,44 @@ rm -rf "./ccoredeps-gh"
 rm -rf "./gera-cjson-gh"
 
 # Determine file used for shell configuration
-shell_cfg=""
+cfg_any="false"
+configure_shell() {
+    cfg_any="true"
+    echo "${c_green}Adding configurations for environment variables to '$1'...$c_reset"
+    echo "export PATH=\"\$PATH:$HOME/.gera\"" >> "$1"
+    echo "export GERAP_JAVA_PATH=\"$java_path\"" >> "$1"
+    echo "export GERAP_GERAC_PATH=\"$HOME/.gera/gerac.jar\"" >> "$1"
+    echo "export GERAP_GIT_PATH=\"$git_path\"" >> "$1"
+    echo "export GERAP_CC_PATH=\"$cc_path\"" >> "$1"
+    source "$1"
+}
+# configure fish
 if [ -e "$HOME/.config/fish/config.fish" ]; then
-    shell_cfg="$HOME/.zshrc"
+    configure_shell "$HOME/.config/fish/config.fish"
 fi
+# configure zsh
 if [ -e "$HOME/.zshrc" ]; then
-    shell_cfg="$HOME/.zshrc"
+    configure_shell "$HOME/.zshrc"
 fi
-if [ -e "$HOME/.bashrc" ]; then
-    shell_cfg="$HOME/.bashrc"
-fi
-if [ -e "$HOME/.profile" ]; then
-    shell_cfg="$HOME/.profile"
-fi
+# configure bash
+bash_cfg=""
 if [ -e "$HOME/.bash_login" ]; then
-    shell_cfg="$HOME/.bash_login"
+    bash_cfg="$HOME/.bash_login"
 fi
 if [ -e "$HOME/.bash_profile" ]; then
-    shell_cfg="$HOME/.bash_profile"
+    bash_cfg="$HOME/.bash_profile"
 fi
-if [ -e "$GERA_SHELL_CFG" ]; then
-    shell_cfg="$GERA_SHELL_CFG"
+if [ -n "$bash_cfg" ]; then
+    configure_shell "$bash_cfg"
 fi
-if [ -z "$shell_cfg" ]; then
-    echo "${c_red}Shell configuration file could not be found!"
-    echo "Try specifying its path under the 'GERA_SHELL_CFG' variable.$c_reset"
-    abort
+# warn if no shell has been configured
+if [ "$cfg_any" == "false" ]; then
+    echo "${c_red}Warning: no shell was configured!"
+    echo "The installation will be completed without anything being configured."
+    echo "If this is unintentional, do the following to configure your shell:"
+    echo "- Add '$HOME/.gerap/' to the 'PATH' environment variable"
+    echo "- Set the 'GERAP_GERAC_PATH' environment variable to '$HOME/.gerap/gerac.jar'$c_reset"
 fi
-
-# Write configurations to shell config file
-echo "${c_green}Adding configurations for environment variables to '$shell_cfg'...$c_reset"
-echo "export PATH=\"\$PATH:$HOME/.gera\"" >> "$shell_cfg"
-echo "export GERAP_JAVA_PATH=\"$java_path\"" >> "$shell_cfg"
-echo "export GERAP_GERAC_PATH=\"$HOME/.gera/gerac.jar\"" >> "$shell_cfg"
-echo "export GERAP_GIT_PATH=\"$git_path\"" >> "$shell_cfg"
-echo "export GERAP_CC_PATH=\"$cc_path\"" >> "$shell_cfg"
-source $shell_cfg
 
 # Done!
 echo "${c_green}Done!$c_reset"
