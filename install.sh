@@ -121,7 +121,7 @@ fi
 
 # Clone 'https://github.com/geralang/gerap' and its dependencies
 echo "${c_green}Getting 'https://github.com/geralang/gerap' and its dependencies$c_reset"
-function do_clone() {
+do_clone() {
     "$git_path" clone "$1" "$2"
     if [ $? -ne 0 ]; then
         echo "${c_red}Unable to clone '$1'!"
@@ -165,6 +165,9 @@ rm -rf "./gera-cjson-gh"
 
 # Determine file used for shell configuration
 shell_cfg=""
+if [ -e "$HOME/.config/fish/config.fish" ]; then
+    shell_cfg="$HOME/.zshrc"
+fi
 if [ -e "$HOME/.zshrc" ]; then
     shell_cfg="$HOME/.zshrc"
 fi
