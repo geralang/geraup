@@ -39,7 +39,7 @@ if [ -z "$java_path" ]; then
     exit 1
 fi
 
-# Ensure that Java returns a version 15 or above
+# Ensure that Java returns a version 17 or above
 java_version=$("$java_path" --version | awk 'match($0, /build.*?\)/) { print substr($0, RSTART+6, RLENGTH-7); exit }')
 java_major_version=$(echo "$java_version" | cut -d '.' -f 1)
 if [ "$java_major_version" -lt 17 ]; then
