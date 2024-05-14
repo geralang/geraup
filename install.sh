@@ -3,8 +3,8 @@
 # Install script for the Gera programming language.
 # Requirements:
 # - wget installed
-# - JVM 16+ installed
-# - latest release of 'geralang/gerac' has a file 'gerac.jar' compiled with Java 15
+# - JVM 17+ installed
+# - latest release of 'geralang/gerac' has a file 'gerac.jar' compiled with Java 17
 
 c_red=$(echo -e "\033[0;31m")
 c_green=$(echo -e "\033[0;32m")
