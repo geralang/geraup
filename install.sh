@@ -2,7 +2,7 @@
 
 # Install script for the Gera programming language.
 # Requirements:
-# - wget installed
+# - Curl installed
 # - JVM 17+ installed
 # - C compiler installed
 # - Git installed
@@ -14,19 +14,11 @@ c_blue=$(echo -e "\033[34m")
 c_reset=$(echo -e "\033[0m")
 c_bold=$(echo -e "\033[1m")
 
-# Find wget at '$GERA_WGET' or 'wget'
-wget_path=""
-if command -v "wget" >/dev/null 2>&1; then
-    wget_path="wget"
-fi
-if command -v "$GERA_WGET" >/dev/null 2>&1; then
-    wget_path="$GERA_WGET"
-fi
-if [ -z "$wget_path" ]; then
-    echo "$c_red'wget' could not be found!"
-    echo "If it is installed, try specifying its path under the 'GERA_WGET' variable.$c_reset"
+# Check that curl is present
+if ! command -v "curl" >/dev/null 2>&1; then
+    echo "${c_red}Curl could not be found!$c_reset"
     exit 1
-fi
+fi 
 
 # Find Java at '$GERA_JAVA' or 'java'
 java_path=""
@@ -111,12 +103,14 @@ function abort() {
 
 # Download latest release of 'https://github.com/geralang/gerac'
 echo "${c_green}Getting latest release of 'https://github.com/geralang/gerac'...$c_reset"
-"$wget_path" -q -O - "https://api.github.com/repos/geralang/gerac/releases/latest" \
+gerac_url=$(curl -s "https://api.github.com/repos/geralang/gerac/releases/latest" \
     | grep "gerac.jar" \
     | grep "browser_download_url" \
     | cut -d : -f 2,3 \
     | tr -d \" \
-    | "$wget_path" -q --show-progress -i - -O "./gerac.jar"
+    | tr -d " " \
+)
+curl --progress-bar -L "$gerac_url" -o "./gerac.jar"
 if [ $? -ne 0 ]; then
     echo "${c_red}Unable to get the latest release!"
     abort
