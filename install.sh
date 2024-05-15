@@ -4,6 +4,7 @@
 # Requirements:
 # - wget installed
 # - JVM 17+ installed
+# - C compiler installed
 # - latest release of 'geralang/gerac' has a file 'gerac.jar' compiled with Java 17
 
 c_red=$(echo -e "\033[31m")
