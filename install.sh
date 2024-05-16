@@ -95,7 +95,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # From now on used when a command fails
-function abort() {
+abort() {
     echo "${c_red}Stopping installation...$c_reset"
     rm -rf "$HOME/.gera"
     exit 1
