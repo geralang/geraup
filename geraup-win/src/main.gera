@@ -127,17 +127,13 @@ proc stop_installation() {
 
 /// Configures some environmental variable both permanently and now.
 proc configure_env_var(var_name, var_value) {
+    "setx _ \"_\""
+        |> fmt([ var_name, var_value ])
+        |> println()
     val setx_status = "setx _ \"_\""
         |> fmt([ var_name, var_value ])
         |> env::run()
     case setx_status != 0 -> {
-        eprintln("Unable to configure environment variable!")
-        stop_installation()
-    }
-    val set_status = "set _=\"_\""
-        |> fmt([ var_name, var_value ])
-        |> env::run()
-    case set_status != 0 -> {
         eprintln("Unable to configure environment variable!")
         stop_installation()
     }
@@ -192,5 +188,6 @@ proc main() {
     println("Configuration complete!")
     // We are done!
     println("Gera has successfully been installed!")
-    println("To start using Gera, simply run 'gerap'.")
+    "To start using Gera, open a new shell / terminal and simply run 'gerap'."
+        |> println()
 }
