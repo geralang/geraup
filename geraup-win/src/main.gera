@@ -1,0 +1,193 @@
+
+// The installer for the Gera programming language for Windows.
+// Requirements:
+// - Curl installed
+// - Admin permissions
+
+mod geraup_win
+
+use std::prc::Process
+use std::arr::iter
+use std::str::fmt
+use std::env
+use std::iter::*
+use std::opt::*
+use std::res::*
+use std::io::*
+
+/// Silently kills the program.
+proc die() {
+    Process::exit(1)
+    return panic("we died X/")
+}
+
+/// Returns the program files directory specified by %ProgramFiles%.
+proc get_pf() = env::get_var("ProgramFiles")
+    |> unwrap_or_else(|| {
+        eprintln("Unable to locate the local program files!")
+        eprintln("Aborting installation...")
+        return die()
+    })
+
+/// Set the current working directory to the program files directory
+/// specified by %ProgramFiles%.
+proc enter_pf() = get_pf()
+    |> set_cwd()
+    |> unwrap_or_else(|e| {
+        eprintln("Unable to locate local program files!")
+        eprintln("Aborting installation...")
+        return die()
+    })
+
+/// Recursively delete (nukes from lower earth orbit) the directory
+/// at the given path.
+proc nuke_dir(path) {
+    read_dir(path) 
+        |> unwrap_or([])
+        |> iter()
+        |> for_each(|name| {
+            val child_p = path
+                |> concat(path_sep()) 
+                |> concat(name)
+            case is_dir(child_p) -> nuke_dir(child_p)
+            else delete_file(child_p)
+        })
+    delete_dir(path)
+}
+
+/// Expects the given optional to be valid, erroring with a complaint about
+/// the Github API returning an invalid response and stopping the installation
+/// if not present.
+proc expect_vr(optional) = optional
+    |> std::opt::unwrap_or_else(|| {
+        eprintln("Invalid response from Github API!")
+        return stop_installation()
+    })
+
+/// Gets the url of some file from the latest release of some github repo.
+proc get_gh_release_file_url(repo, file) {
+    val api_url = "https://api.github.com/repos/_/releases/latest"
+        |> fmt([ repo ])
+    val curl_p = Process::new("curl", ["-s", api_url])
+        .> await()
+    case curl_p .> exit_code() {
+        #none -> {
+            eprintln("Unable to locate curl!")
+            return stop_installation()
+        }
+        #some code -> {
+            case code != 0 -> {
+                eprintln("Unable connect to Github API!")
+                return stop_installation()
+            }
+            return curl_p .> output()
+                |> json::from_str() |> get_ok() |> expect_vr()
+                |> json::get_object() |> expect_vr()
+                .> at("assets") |> expect_vr()
+                |> json::get_array() |> expect_vr()
+                .> iter()
+                |> map(-> it 
+                    |> json::get_object() |> expect_vr()
+                )
+                |> find(-> {
+                    val name = it 
+                        .> at("name") |> expect_vr()
+                        |> json::get_string() |> expect_vr()
+                    return name == file 
+                }) 
+                |> expect_vr()
+                .> at("browser_download_url") |> expect_vr()
+                |> json::get_string() |> expect_vr()
+        }
+    }
+}
+
+/// Downloads the file at the given URL to the given file path.
+proc download_url(url, dest) {
+    println(url)
+    val status = "curl --progress-bar -L _ -o _"
+        |> fmt([ url, dest ])
+        |> env::run()
+    case status != 0 -> {
+        eprintln("Unable to download file!")
+        stop_installation()
+    }
+}
+
+/// Stops the installation, deleting the Gera installation directory.
+proc stop_installation() {
+    enter_pf()
+    nuke_dir(GERA_PF_DIR)
+    eprintln("Stopping installation...")
+    return die()
+}
+
+/// Configures some environmental variable both permanently and now.
+proc configure_env_var(var_name, var_value) {
+    val setx_status = "setx _ \"_\""
+        |> fmt([ var_name, var_value ])
+        |> env::run()
+    case setx_status != 0 -> {
+        eprintln("Unable to configure environment variable!")
+        stop_installation()
+    }
+    val set_status = "set _ \"_\""
+        |> fmt([ var_name, var_value ])
+        |> env::run()
+    case set_status != 0 -> {
+        eprintln("Unable to configure environment variable!")
+        stop_installation()
+    }
+}
+
+/// The directory in %ProgramFiles% that Gera shall be installed into.
+val GERA_PF_DIR = "Gera"
+
+proc main() {
+    // Prepare the 'Gera'-directory in the program files
+    // println("Preparing installation directory...")
+    // enter_pf()
+    // case file_exists(GERA_PF_DIR) -> {
+    //     "A partial or full existing installation of Gera has been detected!"
+    //         |> eprintln()
+    //     "'_' must not exist in '_' for the installation to proceed."
+    //         |> fmt([ GERA_PF_DIR, get_pf() ])
+    //         |> eprintln()
+    //     die()
+    // }
+    // case create_dir(GERA_PF_DIR) {
+    //     #ok -> {}
+    //     #err e -> {
+    //         eprintln("Unable to create installation directory:")
+    //         eprintln(e)
+    //         eprintln("Note: Did you run as administrator?")
+    //         eprintln("Aborting installation...")
+    //         die()
+    //     }
+    // }
+    // "Created installation directory '_'!"
+    //     |> fmt([ get_cwd() ])
+    //     |> println()
+    // set_cwd(GERA_PF_DIR)
+    // Get latest versions of `gerac.jar` and `gerap.exe`
+    println("Downloading pre-built binaries...")
+    get_gh_release_file_url("geralang/gerac", "gerac.jar")
+        |> download_url("gerac.jar")
+    get_gh_release_file_url("geralang/gerap", "gerap.exe")
+        |> download_url("gerap.exe")
+    println("Download complete!")
+    // Configure environmental variables
+    // println("Configuring environmental variables...")
+    // configure_env_var(
+    //     "PATH",
+    //     "%PATH%;" |> concat(get_cwd())
+    // )
+    // configure_env_var(
+    //     "GERAP_GERAC_PATH", 
+    //     canonicalize("gerac.jar") |> expect("we just downloaded it!")
+    // )
+    // println("Configuration complete!")
+    // We are done!
+    println("Gera has successfully been installed!")
+    println("To start using Gera, simply run 'gerap'.")
+}

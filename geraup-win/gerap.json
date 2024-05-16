@@ -1,0 +1,11 @@
+{
+    "name": "geraup-win",
+    "description": "",
+    "authors": ["typesafeschwalbe"],
+    "target": "c",
+    "dependencies": [
+        "https://github.com/geralang/std",
+        "https://github.com/typesafeschwalbe/gera-cjson"
+    ],
+    "main": "geraup_win::main"
+}
