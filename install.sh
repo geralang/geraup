@@ -161,7 +161,7 @@ rm -rf "./ccoredeps-gh"
 rm -rf "./gera-cjson-gh"
 
 # Determine file used for shell configuration
-cfg_any="false"
+cfg_any=""
 configure_shell() {
     cfg_any="true"
     echo "${c_green}Adding configurations for environment variables to '$1'...$c_reset"
@@ -182,6 +182,9 @@ if [ -e "$HOME/.zshrc" ]; then
 fi
 # configure bash
 bash_cfg=""
+if [ -e "$HOME/.bashrc" ]; then
+    bash_cfg="$HOME/.bashrc"
+fi
 if [ -e "$HOME/.bash_login" ]; then
     bash_cfg="$HOME/.bash_login"
 fi
@@ -192,7 +195,7 @@ if [ -n "$bash_cfg" ]; then
     configure_shell "$bash_cfg"
 fi
 # warn if no shell has been configured
-if [ "$cfg_any" == "false" ]; then
+if [ -z "$cfg_any" ]; then
     echo "${c_red}Warning: no shell was configured!"
     echo "The installation will be completed without anything being configured."
     echo "If this is unintentional, do the following to configure your shell:"
