@@ -104,7 +104,10 @@ proc get_gh_release_file_url(repo, file) {
 
 /// Downloads the file at the given URL to the given file path.
 proc download_url(url, dest) {
-    println(url)
+    "Downloading '" 
+        |> concat(url) 
+        |> concat("'...")
+        |> println()
     val status = "curl --progress-bar -L _ -o _"
         |> fmt([ url, dest ])
         |> env::run()
@@ -145,30 +148,30 @@ val GERA_PF_DIR = "Gera"
 
 proc main() {
     // Prepare the 'Gera'-directory in the program files
-    // println("Preparing installation directory...")
-    // enter_pf()
-    // case file_exists(GERA_PF_DIR) -> {
-    //     "A partial or full existing installation of Gera has been detected!"
-    //         |> eprintln()
-    //     "'_' must not exist in '_' for the installation to proceed."
-    //         |> fmt([ GERA_PF_DIR, get_pf() ])
-    //         |> eprintln()
-    //     die()
-    // }
-    // case create_dir(GERA_PF_DIR) {
-    //     #ok -> {}
-    //     #err e -> {
-    //         eprintln("Unable to create installation directory:")
-    //         eprintln(e)
-    //         eprintln("Note: Did you run as administrator?")
-    //         eprintln("Aborting installation...")
-    //         die()
-    //     }
-    // }
-    // "Created installation directory '_'!"
-    //     |> fmt([ get_cwd() ])
-    //     |> println()
-    // set_cwd(GERA_PF_DIR)
+    println("Preparing installation directory...")
+    enter_pf()
+    case file_exists(GERA_PF_DIR) -> {
+        "A partial or full existing installation of Gera has been detected!"
+            |> eprintln()
+        "'_' must not exist in '_' for the installation to proceed."
+            |> fmt([ GERA_PF_DIR, get_pf() ])
+            |> eprintln()
+        die()
+    }
+    case create_dir(GERA_PF_DIR) {
+        #ok -> {}
+        #err e -> {
+            eprintln("Unable to create installation directory:")
+            eprintln(e)
+            eprintln("Note: Did you run as administrator?")
+            eprintln("Aborting installation...")
+            die()
+        }
+    }
+    "Created installation directory '_'!"
+        |> fmt([ get_cwd() ])
+        |> println()
+    set_cwd(GERA_PF_DIR)
     // Get latest versions of `gerac.jar` and `gerap.exe`
     println("Downloading pre-built binaries...")
     get_gh_release_file_url("geralang/gerac", "gerac.jar")
@@ -177,16 +180,16 @@ proc main() {
         |> download_url("gerap.exe")
     println("Download complete!")
     // Configure environmental variables
-    // println("Configuring environmental variables...")
-    // configure_env_var(
-    //     "PATH",
-    //     "%PATH%;" |> concat(get_cwd())
-    // )
-    // configure_env_var(
-    //     "GERAP_GERAC_PATH", 
-    //     canonicalize("gerac.jar") |> expect("we just downloaded it!")
-    // )
-    // println("Configuration complete!")
+    println("Configuring environmental variables...")
+    configure_env_var(
+        "PATH",
+        "%PATH%;" |> concat(get_cwd())
+    )
+    configure_env_var(
+        "GERAP_GERAC_PATH", 
+        canonicalize("gerac.jar") |> expect("we just downloaded it!")
+    )
+    println("Configuration complete!")
     // We are done!
     println("Gera has successfully been installed!")
     println("To start using Gera, simply run 'gerap'.")
