@@ -120,27 +120,24 @@ proc download_url(url, dest) {
 /// Stops the installation, deleting the Gera installation directory.
 proc stop_installation() {
     enter_pf()
-    nuke_dir(GERA_PF_DIR)
+    nuke_dir("Gera")
     eprintln("Stopping installation...")
     return die()
 }
-
-/// The directory in %ProgramFiles% that Gera shall be installed into.
-val GERA_PF_DIR = "Gera"
 
 proc main() {
     // Prepare the 'Gera'-directory in the program files
     println("Preparing installation directory...")
     enter_pf()
-    case file_exists(GERA_PF_DIR) -> {
+    case file_exists("Gera") -> {
         "A partial or full existing installation of Gera has been detected!"
             |> eprintln()
-        "'_' must not exist in '_' for the installation to proceed."
-            |> fmt([ GERA_PF_DIR, get_pf() ])
+        "'Gera' must not exist in '_' for the installation to proceed."
+            |> fmt([ get_pf() ])
             |> eprintln()
         die()
     }
-    case create_dir(GERA_PF_DIR) {
+    case create_dir("Gera") {
         #ok -> {}
         #err e -> {
             eprintln("Unable to create installation directory:")
@@ -153,7 +150,7 @@ proc main() {
     "Created installation directory '_'!"
         |> fmt([ get_cwd() ])
         |> println()
-    set_cwd(GERA_PF_DIR)
+    set_cwd("Gera")
     // Get latest versions of `gerac.jar` and `gerap.exe`
     println("Downloading pre-built binaries...")
     get_gh_release_file_url("geralang/gerac", "gerac.jar")
@@ -163,8 +160,7 @@ proc main() {
     println("Download complete!")
     // Configure environmental variables
     println("Configuring environmental variables...")
-    "setx PATH \"%PATH%;_\" /m > nul"
-        |> fmt([ get_cwd() ])
+    "setx PATH \"%PATH%;%ProgramFiles%\\Gera\" /m > nul"
         |> env::run()
     val gerac_jar = canonicalize("gerac.jar")
         |> expect("we just downloaded it!")
