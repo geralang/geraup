@@ -127,13 +127,9 @@ proc stop_installation() {
 
 /// Configures some environmental variable both permanently and now.
 proc configure_env_var(var_name, var_value) {
-    "setx _ \"_\""
-        |> fmt([ var_name, var_value ])
-        |> println()
-    val setx_status = "setx _ \"_\""
-        |> fmt([ var_name, var_value ])
-        |> env::run()
-    case setx_status != 0 -> {
+    val cfg_p = Process::new("setx", [var_name, var_value, "/m"])
+        .> await()
+    case unwrap_or(cfg_p .> exit_code(), 1) != 0 -> {
         eprintln("Unable to configure environment variable!")
         stop_installation()
     }
@@ -177,6 +173,7 @@ proc main() {
     println("Download complete!")
     // Configure environmental variables
     println("Configuring environmental variables...")
+    println(get_cwd())
     configure_env_var(
         "PATH",
         "%PATH%;" |> concat(get_cwd())
