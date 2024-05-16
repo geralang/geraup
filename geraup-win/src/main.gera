@@ -134,7 +134,7 @@ proc configure_env_var(var_name, var_value) {
         eprintln("Unable to configure environment variable!")
         stop_installation()
     }
-    val set_status = "set _ \"_\""
+    val set_status = "set _=\"_\""
         |> fmt([ var_name, var_value ])
         |> env::run()
     case set_status != 0 -> {
