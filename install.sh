@@ -38,7 +38,7 @@ fi
 java_version=$("$java_path" --version | awk 'match($0, /build.*?\)/) { print substr($0, RSTART+6, RLENGTH-7); exit }')
 java_major_version=$(echo "$java_version" | cut -d '.' -f 1)
 if [ "$java_major_version" -lt 17 ]; then
-    echo "$c_red'$java_path' has version '$java_version', but needs to be Java 16 or later!"
+    echo "$c_red'$java_path' has version '$java_version', but needs to be Java 17 or later!"
     echo "If it is installed, try specifying its path under the 'GERA_JAVA' variable.$c_reset"
     exit 1
 fi

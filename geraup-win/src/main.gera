@@ -21,6 +21,10 @@ proc die() {
     return panic("we died X/")
 }
 
+/// Returns the contents of the path environment variable (%PATH%).
+proc get_path() = env::get_var("PATH")
+    |> expect("The PATH doesn't exist!")
+
 /// Returns the program files directory specified by %ProgramFiles%.
 proc get_pf() = env::get_var("ProgramFiles")
     |> unwrap_or_else(|| {
@@ -160,12 +164,13 @@ proc main() {
     println("Download complete!")
     // Configure environmental variables
     println("Configuring environmental variables...")
-    "setx PATH \"%PATH%;%ProgramFiles%\\Gera\" /m > nul"
+    "setx PATH \"_;_\\Gera\" /m"
+        |> fmt([ get_path(), get_pf() ])
         |> env::run()
     val gerac_jar = canonicalize("gerac.jar")
         |> expect("we just downloaded it!")
-    "setx GERAP_GERAC_PATH \"_\" /m > nul"
-        |> fmt([ gerac_jar ])
+    "setx _ \"_\" /m"
+        |> fmt([ "GERAP_GERAC_PATH", gerac_jar ])
         |> env::run()
     println("Configuration complete!")
     // We are done!
